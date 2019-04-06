@@ -9,19 +9,38 @@ GAME_URL = V_1_1_URL + 'game/{}/feed/live'
 import requests
 import datetime
 
-def schedule(query_datetime=None,teamId=None):
+'''
+Get the schedule for the given day and team.  By default, the day will be today
+and games for all teams will be returned.
+
+If a connection can not be established, such as due to a network or DNS
+outage, a ValueError will be raised.
+'''
+def schedule(day=None,teamId=None):
     parameters = {'sportId': '1', 'language': 'en'}
-    if query_datetime:
-        parameters['date'] = datetime.date.today()
+    if day:
+        parameters['date'] = str(day)
     if teamId:
         parameters['teamId'] = str(teamId)
 
-    r = requests.get(SCHEDULE_URL, parameters)
+    try:
+        r = requests.get(SCHEDULE_URL, parameters)
+    except ConnectionError:
+        raise ValueError('Failed to retrieve MLB schedule information.')
     r.raise_for_status()
     return r.json()
 
+'''
+Get information about a game.
+
+If a connection can not be established, such as due to a network or DNS
+outage, a ValueError will be raised.
+'''
 def game(gameId):
     parameters = {'language': 'en'}
-    r = requests.get(GAME_URL.format(gameId), parameters)
+    try:
+        r = requests.get(GAME_URL.format(gameId), parameters)
+    except ConnectionError:
+        raise ValueError('Failed to retrieve MLB game information.')
     r.raise_for_status()
     return r.json()
